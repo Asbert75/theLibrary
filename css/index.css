@@ -1,3 +1,120 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-family: 'Playfair Display', serif;
+}
 
+body {
+  background-color: #bfceff;
+  text-align: center;
+}
+
+input:focus {
+    outline: 1px solid #A7ABDB;
+}
+
+.header {
+  margin-top: 3em;
+  text-align: center;
+}
+
+#addBookContainer {
+  margin-top: 3em;
+  display: inline-block;
+  text-align: center;
+}
+
+#addBookContainer > input {
+    padding: 0.5em;
+}
+
+#addBookContainer button {
+  margin: .7em;
+  border: 1px solid lightgrey;
+  background-color: #A7ABDB;
+  padding: .55em;
+
+}
+
+#failedContainer{
+  border-radius: 20px 20px 0px 0px;
+  margin-top: 3em;
+  background: #bf6d6d;
+  width: 86%;
+  margin-left: 7%;
+  padding-top: 1.5em;
+  padding-bottom: 1.5em;
+}
+
+#library {
+  background-color: #d6d6d6;
+  display: flex;
+  flex-wrap: wrap;
+  width: 86%;
+  margin-left: 7%;
+}
+
+#library > div {
+  padding-top: 1em;
+  padding-bottom: 1em;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+#library > div:nth-child(1) {
+    padding-top: 2em;
+    padding-bottom: 2em;
+}
+
+
+#library > div:nth-child(2n) {
+    background-color: #f2f2f2;
+}
+
+
+#library > div > *:nth-child(1) {
+  text-transform: uppercase;
+  width: 40%;
+  text-align: right;
+}
+
+#library > div > *:nth-child(2) {
+  text-transform: uppercase;
+  text-align: left;
+  padding-left: 5em;
+  width: 50%;
+}
+
+#library > div > *:nth-child(3) {
+  padding-top: 0.3em;
+  padding-bottom: 0.3em;
+  margin: .7em;
+  border: 1px solid lightgrey;
+  background-color: #A7ABDB;
+  max-height: 2em;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
+#library input {
+  width: 50%;
+  min-width: 150px;
+  padding: .3em;
+  font-size: 1.03em;
+}
+
+#library #auth{
+  text-align: right;
+}
+
+#library {
+    border-radius: 0px 0px 20px 20px;
+    margin-bottom: 5em;
+}
+
+.hidden {
+  display: none;
+}
 
 /*# sourceMappingURL=index.css.map */

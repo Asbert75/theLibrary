@@ -4,24 +4,30 @@
 <link href="css/index.css" rel="stylesheet" type="text/css">
 <script src="index.js"></script>
 <meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css?family=Playfair+Display" rel="stylesheet">
+
 </head>
 <body>
 
 <main>
     <div class="header">
-        <h1></h1>
-        <p></p>
+        <h1>BIB-LAN</h1>
+        <p>fo all ye bookies</p>
     </div>
 
+
+    <div id="addBookContainer">
     <input type="text" id="author" placeholder="Author">
     <input type="text" id="title" placeholder="Title">
+    <button id="addBook">Add book</button>
+    </div>
+  <div id="failedContainer">
+      <p id="failedCounter">0</p>
+      <p id="failedMessage"></p>
+  </div>
 
-  <button id="addBook">Add book</button>
-
-
-  <p id="failedCounter">0</p>
-  <p id="failedMessage"></p>
-  <div id="library"></div>
+  <div id="library">
+  </div>
 
 </main>
 
