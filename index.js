@@ -45,15 +45,7 @@ window.onload = function () {
   }
 
   function modifyBook(data) {
-      console.log("Modify Data:");
-      console.log(data);
-      let dataUrl = url + "op=update&key=" + apiKey + "&id=" + data.id;
-      if(data.title) {
-          dataUrl += "&title=" + data.title;
-      }
-      if(data.author) {
-          dataUrl += "&author=" + data.author;
-      }
+      let dataUrl = url + "op=update&key=" + apiKey + "&id=" + data.id + "&title=" + data.title + "&author=" + data.author;
 
       fetch(dataUrl, {method: "POST"})
       .then(res=>{
@@ -76,16 +68,19 @@ window.onload = function () {
       })
       .then(json=>{
           if(json.status == "success") {
-            library.innerHTML = "";
+            library.innerHTML = "<div><p><b>Author:</b></p><p><b>Title:</b></p></div>";
 
             for(i=0; i<json.data.length; i++){
+                  let bookAuthor = json.data[i].author;
+                  let bookTitle = json.data[i].title;
+
                   let bookDiv = document.createElement("div");
                   bookDiv.id = json.data[i].id;
-                  bookDiv.innerHTML = "<p class='author'><input class='hidden' /><span>" + json.data[i].author + "</span></p>";
+                  bookDiv.innerHTML = "<p class='author'><input id='auth' class='hidden' /><span>" + json.data[i].author + "</span></p>";
                   bookDiv.innerHTML += "<p class='title'><input class='hidden' /><span>" + json.data[i].title + "</span></p>";
 
                   let del = document.createElement("button");
-                  del.innerHTML = "Delete Book";
+                  del.innerHTML = "Delete";
                   del.classList.add("delete");
                   bookDiv.appendChild(del);
                   del.addEventListener("click", function() {
@@ -110,8 +105,7 @@ window.onload = function () {
                           span.innerHTML = input.value;
                           span.classList.remove("hidden");
                           input.classList.add("hidden");
-                          modifyBook({id: json.data[i].id, author: authorInput.value});
-                          console.log("Modified Book");
+                          modifyBook({id: i, author: input.value, title: bookTitle});
                       });
                   })
 
@@ -130,8 +124,7 @@ window.onload = function () {
                       span.innerHTML = input.value;
                       span.classList.remove("hidden");
                       input.classList.add("hidden");
-                      modifyBook({id: json.data[i].id, title: titleInput.value});
-                      console.log("Modified Book");
+                      modifyBook({id: i, title: input.value, author: bookAuthor});
                     });
                   })
 
@@ -149,25 +142,29 @@ window.onload = function () {
           return res.json();
       })
       .then(json=>{
-          if(json.status == "success") {
-              console.log("Added book");
+          if(json.status === "success") {
               viewBooks();
+
+              let author = document.getElementById("author");
+              let title = document.getElementById("title");
+              author.value = "";
+              title.value = "";
+
           }
-          else {
+          else if(json.status !== "success"){
               incrementFails(json.message);
+            //  addBook(data);
           }
       });
   }
 
   function deleteBook(id) {
-      console.log(id);
       fetch(url + "op=delete&key=" + apiKey + "&id=" + id)
       .then(res=>{
           return res.json();
       })
       .then(json=>{
           if(json.status == "success") {
-              console.log("Deleted book");
               library.removeChild(document.getElementById(id));
           }
           else {
@@ -179,7 +176,6 @@ window.onload = function () {
   addButton.addEventListener("click", function() {
       let author = document.getElementById("author").value;
       let title = document.getElementById("title").value;
-
       addBook({author: author, title: title});
   });
 
