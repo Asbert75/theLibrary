@@ -2,6 +2,7 @@ window.onload = function () {
   let addButton = document.getElementById("addBook");
   let library = document.getElementById("library");
   let failedCounter = document.getElementById("failedCounter");
+  let failedMessage = document.getElementById("failedMessage");
 
   let url = "https://www.forverkliga.se/JavaScript/api/crud.php?";
   let apiKey;
@@ -9,138 +10,170 @@ window.onload = function () {
 
   authenticate();
 
+  function incrementFails(err) {
+      failedCalls++;
+      failedCounter.innerHTML = failedCalls;
+      failedMessage.innerHTML = err;
+  }
+
   function listBooks() {
-      let req = new XMLHttpRequest();
-      req.open("GET", "https://api.nytimes.com/svc/books/v3/lists/best-sellers/history.json?api-key=b7db74bba79e429784d1f27fe4eb9030");
-
-      req.onreadystatechange = function() {
-          if(req.status == 200 && req.readyState == 4) {
-              let bookList = JSON.parse(req.response).results;
-              bookList.forEach(function(book) {
-                  addBook({title: book.title, author: book.author});
-              });
-
-              viewBooks();
-          }
-      }
-      req.send();
+      fetch("https://api.nytimes.com/svc/books/v3/lists/best-sellers/history.json?api-key=b7db74bba79e429784d1f27fe4eb9030")
+      .then(res=>{
+        return res.json();
+      })
+      .then(json=>{
+        json.results.forEach(function(book) {
+            addBook({title: book.title, author: book.author});
+        });
+      })
   }
 
   function authenticate() {
-      let req = new XMLHttpRequest();
-      req.open("GET", url + "requestKey");
-
-      req.onreadystatechange = function() {
-          if(req.status == 200 && req.readyState == 4) {
-              apiKey = JSON.parse(req.response).key;
-              listBooks();
+      fetch(url + "requestKey")
+      .then(res=>{
+          return res.json();
+      })
+      .then(json=>{
+          if(json.status == "success") {
+             apiKey = json.key;
+             listBooks();
           }
-      }
-      req.send();
+          else {
+              incrementFails(json.message);
+          }
+      });
   }
 
   function modifyBook(data) {
-      let req = new XMLHttpRequest();
-      req.open("POST", url + "op=update&key=" + apiKey + "&id=" + data.id + "&title=" + data.title + "&author=" + data.author);
-
-      req.onreadystatechange = function () {
-        if(req.readyState == 4 && req.status == 200){
-            viewBooks();
-        }
+      console.log("Modify Data:");
+      console.log(data);
+      let dataUrl = url + "op=update&key=" + apiKey + "&id=" + data.id;
+      if(data.title) {
+          dataUrl += "&title=" + data.title;
+      }
+      if(data.author) {
+          dataUrl += "&author=" + data.author;
       }
 
-      req.send();
+      fetch(dataUrl, {method: "POST"})
+      .then(res=>{
+          return res.json();
+      })
+      .then(json=>{
+          if(json.status == "success") {
+              viewBooks();
+          }
+          else {
+              incrementFails(json.message);
+          }
+      })
   }
 
   function viewBooks() {
-      let req = new XMLHttpRequest();
-      req.open("GET", url + "op=select&key=" + apiKey);
-      req.onreadystatechange = function() {
-          if(req.readyState == 4 && req.status == 200 && JSON.parse(req.response).status == "success") {
-              let books = JSON.parse(req.response).data;
+      fetch(url + "op=select&key=" + apiKey)
+      .then(res=>{
+          return res.json();
+      })
+      .then(json=>{
+          if(json.status == "success") {
+            library.innerHTML = "";
 
-              books.forEach(function(book) {
-                console.log(book.title);
+            for(i=0; i<json.data.length; i++){
                   let bookDiv = document.createElement("div");
-                  bookDiv.innerHTML = "<input class'titleInput hidden' type='text' value=" + book.title + " />";
-                  bookDiv.innerHTML += "<h3 class='titleText'>" + book.title + "</h3>";
-                  bookDiv.innerHTML += "<input class='authorInput hidden' type='text' value=" + book.author + " />";
-                  bookDiv.innerHTML += "<p class='authorText'>" + book.author + "</p>";
-                  bookDiv.id = book.id;
-
+                  bookDiv.id = json.data[i].id;
+                  bookDiv.innerHTML = "<p class='author'><input class='hidden' /><span>" + json.data[i].author + "</span></p>";
+                  bookDiv.innerHTML += "<p class='title'><input class='hidden' /><span>" + json.data[i].title + "</span></p>";
 
                   let del = document.createElement("button");
                   del.innerHTML = "Delete Book";
                   del.classList.add("delete");
-                  del.addEventListener("click", function() {
-                      deleteBook(book.id);
-                  });
-
                   bookDiv.appendChild(del);
-
-                  let authorText = bookDiv.getElementsByClassName("authorText")[0];
-                  let authorInput = bookDiv.getElementsByClassName("authorInput")[0];
-
-                  authorText.addEventListener("click", function() {
-                      authorText.classList.add("hidden");
-                      authorInput.classList.remove("hidden");
-
-                      authorInput.value = authorText.innerHTML;
+                  del.addEventListener("click", function() {
+                      deleteBook(del.parentNode.id);
                   });
-
-                  authorInput.addEventListener("onblur", function() {
-                      modifyBook({id: book.id, author: authorInput.value, title: titleInput.value});
-
-                      authorText.classList.remove("hidden");
-                      authorInput.classList.add("hidden");
-                  });
-
-                  let titleText = bookDiv.getElementsByClassName("titleText")[0];
-                  let titleInput = bookDiv.getElementsByClassName("titleInput")[0];
-
-                  titleText.addEventListener("click", function(){
-                      titleText.classList.add("hidden");
-                      titleInput.classList.remove("hidden");
-                      titleInput.value = titleText.innerHTML;
-                  });
-
-                      titleInput.addEventListener("onblur", function(){
-                      modifyBook({id: book.id, title: titleInput.value, author: authorInput.value});
-
-                      titleText.classList.remove("hidden");
-                      titleInput.classList.add("hidden");
-                  });
-
 
                   library.appendChild(bookDiv);
-              });
-          }
-      }
 
-      req.send();
+                  let author = bookDiv.getElementsByClassName("author")[0];
+
+                  author.addEventListener("click", function() {
+                      let input = author.getElementsByTagName("input")[0];
+                      let span = author.getElementsByTagName("span")[0];
+
+                      input.value = span.innerHTML;
+                      input.classList.remove("hidden");
+                      span.classList.add("hidden");
+                      input.focus();
+
+
+                      input.addEventListener("blur", function() {
+                          span.innerHTML = input.value;
+                          span.classList.remove("hidden");
+                          input.classList.add("hidden");
+                          modifyBook({id: json.data[i].id, author: authorInput.value});
+                          console.log("Modified Book");
+                      });
+                  })
+
+                  let title = bookDiv.getElementsByClassName("title")[0];
+
+                  title.addEventListener("click", function(){
+                    let input = title.getElementsByTagName("input")[0];
+                    let span = title.getElementsByTagName('span')[0];
+
+                    input.value = span.innerHTML;
+                    input.classList.remove("hidden");
+                    span.classList.add("hidden");
+                    input.focus();
+
+                    input.addEventListener("blur", function(){
+                      span.innerHTML = input.value;
+                      span.classList.remove("hidden");
+                      input.classList.add("hidden");
+                      modifyBook({id: json.data[i].id, title: titleInput.value});
+                      console.log("Modified Book");
+                    });
+                  })
+
+              }
+          }
+          else {
+              incrementFails(json.message);
+          }
+      });
   }
 
   function addBook(data) {
-      let req = new XMLHttpRequest();
-      req.open("POST", url + "op=insert&key=" + apiKey + "&title=" + data.title + "&author=" + data.author);
-      req.onreadystatechange = function () {
-        if(req.readyState == 4 && req.status == 200){
-            if(JSON.parse(req.response).status == "success"){
-
-
-            }
-            else {
-                failedCalls++;
-                failedCounter.innerHTML = failedCalls;
-            }
-        }
-      }
-
-      req.send();
+      fetch(url + "op=insert&key=" + apiKey + "&title=" + data.title + "&author=" + data.author, {method: "POST"})
+      .then(res=>{
+          return res.json();
+      })
+      .then(json=>{
+          if(json.status == "success") {
+              console.log("Added book");
+              viewBooks();
+          }
+          else {
+              incrementFails(json.message);
+          }
+      });
   }
 
   function deleteBook(id) {
-
+      console.log(id);
+      fetch(url + "op=delete&key=" + apiKey + "&id=" + id)
+      .then(res=>{
+          return res.json();
+      })
+      .then(json=>{
+          if(json.status == "success") {
+              console.log("Deleted book");
+              library.removeChild(document.getElementById(id));
+          }
+          else {
+              incrementFails(json.message);
+          }
+      })
   }
 
   addButton.addEventListener("click", function() {
