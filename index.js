@@ -137,7 +137,7 @@ window.onload = function () {
   }
 
   function addBook(data) {
-      fetch(url + "op=insert&key=" + apiKey + "&title=" + data.title + "&author=" + data.author, {method: "POST"})
+      fetch(url + "op=insert&key=" + apiKey + "&title=" + encodeURIComponent(data.title) + "&author=" + encodeURIComponent(data.author), {method: "POST"})
       .then(res=>{
           return res.json();
       })
@@ -153,7 +153,7 @@ window.onload = function () {
           }
           else if(json.status !== "success"){
               incrementFails(json.message);
-            //  addBook(data);
+              addBook(data);
           }
       });
   }
